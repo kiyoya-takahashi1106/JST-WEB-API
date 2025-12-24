@@ -17,17 +17,17 @@ db = firestore.client()
 def root():
     return {"message": "Hello FastAPI"}
 
-@app.get("/save")
-def save_data():
-    data = {
-        "message": "hello firestore",
-        "time": datetime.utcnow().isoformat()
-    }
-    db.collection("test").add(data)
-    return {
-        "status": "saved",
-        "data": data
-    }
+# @app.get("/save")
+# def save_data():
+#     data = {
+#         "message": "hello firestore",
+#         "time": datetime.utcnow().isoformat()
+#     }
+#     db.collection("test").add(data)
+#     return {
+#         "status": "saved",
+#         "data": data
+#     }
 
 
 # reservation
@@ -45,7 +45,7 @@ def reserve(request: ReservationRequest):
     }
 
 
-# get posts
+# get all posts
 @app.get("/posts")
 def get_all_posts():
     posts_ref = db.collection("posts")
@@ -56,6 +56,23 @@ def get_all_posts():
         post = doc.to_dict()
         post["id"] = doc.id
         posts.append(post)
+
+    return {
+        "success": True,
+        "posts": posts
+    }
+
+
+# get posts by user uid
+@app.get("/user/{uid}/posts")
+def get_posts_by_uid(uid: str):
+    docs = (
+        db.collection("posts")
+        .where("uid", "==", uid)
+        .stream()
+    )
+
+    posts = [{"id": d.id, **d.to_dict()} for d in docs]
 
     return {
         "success": True,
